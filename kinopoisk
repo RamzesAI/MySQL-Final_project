@@ -1,0 +1,462 @@
+/*
+ Для проектирования БД выбран сервис "Кинопоиск", позволяющий предоставлять доступ к медиа-контенту, такому как фильмы, мульфильмы, сериалы.
+ Для просмотра медиа на портале Кинопоиск, необходимо пройти регистрацию, указав личные данные.
+ После регистрации необходимо выбрать тип подписки для стандартного или расширенного доступа к медиа.
+ Есть несколько типов подписок: 
+ 	-подписка 30 дней бесплатно (доступ как в подписке "плюс") 
+ 	-подписка "плюс"
+ 	-подписка "а-медиа", дороже чем "плюс" и с расширенным доступом к разному контенту
+Т.к. бесплатная подписка и "плюс" не отличаются по доступу, то буду разделять подписки только на два типа.
+
+После оформление подписки, пользователю открывается доступ к определенному контенту.
+Каждый файл имеет: название, описание, год выпуска жанр, актера в главной роли, режиссера ограничение по возрасту, и доступность за деньги или по подписке 
+
+ База данных спроектирована таким образом, чтобы все данные о медиа можно было расширить и использовать 
+ */
+
+
+DROP DATABASE IF EXISTS kinopoisk;
+
+CREATE DATABASE kinopoisk;
+
+USE kinopoisk;
+
+/*
+ В таблице subscribe_types находятся варианты подписок с названиями. 
+ В случае расширения количества подписок в дальнейшем, можно просто добавлять их в таблицу
+ */
+
+CREATE TABLE subscribe_types (
+	id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	subscribe_name VARCHAR(45) NOT NULL
+);
+
+INSERT INTO subscribe_types VALUES 
+	(DEFAULT, 'PLUS'), -- минимальная подписка, подключаемая автоматически при регистрации
+	(DEFAULT, 'A-MEDIA'); -- максимальная подписка 
+		
+	
+/*
+ В таблице users указаны все личные данные пользователей и указано обязательное поле subscribe_update (время обновления подписки)
+ для возможности контроля доступа пользователей к медиа
+ */
+CREATE TABLE users (
+	id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	subscribe_id INT UNSIGNED NOT NULL, -- тип подписки
+	subscribe_update DATETIME NOT NULL, -- время обновления подписки
+	first_name VARCHAR(145) NOT NULL,
+	last_name VARCHAR(145) NOT NULL,
+	email VARCHAR(145) NOT NULL UNIQUE,
+	phone CHAR(11) NOT NULL UNIQUE,
+	birthday DATE NOT NULL,
+	password_hash CHAR(65) NOT NULL UNIQUE,
+	created_at DATE NOT NULL,
+	CONSTRAINT fk_users_subscribe_types FOREIGN KEY (subscribe_id) REFERENCES subscribe_types (id)
+);
+
+INSERT INTO users VALUES 
+	(DEFAULT, 1, '2021-04-29 12:00:00', 'Захар', 'Никольский', 'никольский@mail.ru', '89991001001', '1991-10-31', '2raz5vg23k6amdb92ibi', '2019-07-30'), 
+	(DEFAULT, 2, '2021-04-30 12:00:00', 'Варвара', 'Родионова', 'родионова@mail.ru', '89991001002', '2008-11-19', '7pnolff3o9pfn3seasyt', '2019-03-20'),
+	(DEFAULT, 1, '2021-04-19 12:00:00', 'Глеб', 'Дроздов', 'дроздов@mail.ru', '89991001003', '1987-04-23', 'q35k2zmcp514skftelt2', '2018-09-13'),
+	(DEFAULT, 1, '2021-04-17 12:00:00', 'Арина', 'Щербакова', 'щербакова@mail.ru', '89991001004', '2011-01-23', '16qyxptlqd0uzfx97r85', '2018-09-01'),
+	(DEFAULT, 1, '2021-04-27 12:00:00', 'Кира', 'Никифорова', 'никифорова@mail.ru', '89991001005', '2010-06-01', 'g6uba76yn4n4c71w7xbe', '2018-10-20'),
+	(DEFAULT, 1, '2021-04-22 12:00:00', 'Марк', 'Крюков', 'крюков@mail.ru', '89991001006', '2010-03-25', 'o6pitakuz0jzvzjx1z36', '2019-07-21'), 
+	(DEFAULT, 2, '2021-04-21 12:00:00', 'Лев', 'Филиппов', 'филиппов@mail.ru', '89991001007', '1983-07-30', 'ypfwkpkdrrx6tnxc4epx', '2018-09-23'),
+	(DEFAULT, 1, '2021-04-20 12:00:00', 'Фёдор', 'Федотов', 'федотов@mail.ru', '89991001008', '2009-03-27', '0gzthauxq1cljczhadrg', '2018-05-11'),
+	(DEFAULT, 1, '2021-04-28 12:00:00', 'Екатерина', 'Блинова', 'блинова@mail.ru', '89991001009', '2005-04-11', 'dtith622j1fd5lvfz4ni', '2019-09-16'),
+	(DEFAULT, 2, '2021-04-27 12:00:00', 'Анастасия', 'Тихонова', 'тихонова@mail.ru', '89991001010', '1995-01-27', '8nmmenf1hkfvj74jv22o', '2019-01-28'),
+	(DEFAULT, 1, '2021-04-29 12:00:00', 'Марьяна', 'Фролова', 'фролова@mail.ru', '89991001011', '1983-04-09', 'mkqzt12q1zcee1jltkha', '2019-05-26'), 
+	(DEFAULT, 1, '2021-04-29 12:00:00', 'Тимур', 'Фёдоров', 'фёдоров@mail.ru', '89991001012', '2004-10-04', '0p0c6k58o8fusr05np5c', '2018-10-04'),
+	(DEFAULT, 1, '2021-04-30 12:00:00', 'Полина', 'Боброва', 'боброва@mail.ru', '89991001013', '2003-05-27', 'l7hq9558f4liu4lqtasz', '2018-06-06'),
+	(DEFAULT, 1, '2021-04-18 12:00:00', 'Георгий', 'Рыбаков', 'рыбаков@mail.ru', '89991001014', '1982-05-22', '2q77xw0qrruyg9kbiekd', '2019-08-26'),
+	(DEFAULT, 1, '2021-04-24 12:00:00', 'Кирилл', 'Петухов', 'петухов@mail.ru', '89991001015', '1987-08-11', '6u1mlc54hxtili39q1az', '2019-08-30'),
+	(DEFAULT, 1, '2021-04-23 12:00:00', 'Анна', 'Третьякова', 'третьякова@mail.ru', '89991001016', '1980-05-27', '5dxz6tfbn0u0wz2pogx4', '2019-03-03'), 
+	(DEFAULT, 1, '2021-04-20 12:00:00', 'Милана', 'Суворова', 'суворова@mail.ru', '89991001017', '1982-10-29', 'lahf4418vv0q92lsgugq', '2019-03-26'),
+	(DEFAULT, 1, '2021-04-25 12:00:00', 'Максим', 'Зуев', 'зуев@mail.ru', '89991001018', '1990-03-12', 't9471hgcswk6szpmt1od', '2018-12-30'),
+	(DEFAULT, 2, '2021-04-22 12:00:00', 'Ева', 'Константинова', 'константинова@mail.ru', '89991001019', '1994-09-20', '293htf7bhz3dytcojk0o', '2019-05-11'),
+	(DEFAULT, 1, '2021-05-03 12:00:00', 'Михаил', 'Панфилов', 'панфилов@mail.ru', '89991001020', '1983-02-04', 'yngp8d22ba1oz2nchcir', '2019-01-04'),
+	(DEFAULT, 1, '2021-05-03 12:00:00', 'Али', 'Миронов', 'миронов@mail.ru', '89991001021', '2003-08-14', '0nd3x76xdfwafjqm0obc', '2019-10-31'), 
+	(DEFAULT, 1, '2021-05-01 12:00:00', 'Вероника', 'Моисеева', 'моисеева@mail.ru', '89991001022', '2007-08-13', 'ellm0tyzu7fjooa3gu82', '2018-03-28'),
+	(DEFAULT, 2, '2021-05-02 12:00:00', 'Алексей', 'Елисеев', 'елисеев@mail.ru', '89991001023', '1986-02-02', '445hzcwbiund1sylbelc', '2019-06-19'),
+	(DEFAULT, 2, '2021-05-04 12:00:00', 'Роман', 'Евсеев', 'евсеев@mail.ru', '89991001024', '1992-09-12', 'qumyj9rwgzzdrwepur81', '2018-04-23'),
+	(DEFAULT, 2, '2021-05-01 12:00:00', 'Артём', 'Зайцев', 'зайцев@mail.ru', '89991001025', '1989-08-23', 'ahy4beozf74n70qaeqn0', '2018-12-01');
+ 
+
+/*
+ В таблице media_types указаны все типы медиа, представленные на портале
+ */
+
+CREATE TABLE media_types (
+	id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	name VARCHAR (45) NOT NULL UNIQUE -- мультфильм, фильм, мультсериал, сериал
+);
+
+INSERT INTO media_types VALUES 
+	(1, 'фильм'),
+	(2, 'сериал'),
+	(3, 'мультфильм'),
+	(4, 'мультсериал');
+
+/*
+ В таблице genre_types указаны все жанры медиа
+ */
+
+CREATE TABLE genre_types (
+	id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	name VARCHAR (45) NOT NULL UNIQUE 
+);
+
+INSERT INTO genre_types VALUES 
+	(DEFAULT, 'фэнтэзи'),
+	(DEFAULT, 'комедия'),
+	(DEFAULT, 'драма'),
+	(DEFAULT, 'документальный'),
+	(DEFAULT, 'триллер'),
+	(DEFAULT, 'приключения'),
+	(DEFAULT, 'ужасы'),
+	(DEFAULT, 'боевик'),
+	(DEFAULT, 'фантастика'),
+	(DEFAULT, 'детектив');
+
+/*
+Для возможности ограничения пользователей по возрасту использовано несколько групп
+ */
+
+CREATE TABLE age_limit (
+	id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	name VARCHAR (45) NOT NULL UNIQUE
+);
+
+INSERT INTO age_limit VALUES 
+	(DEFAULT, '0+'),
+	(DEFAULT, '6+'),
+	(DEFAULT, '12+'),
+	(DEFAULT, '16+'),
+	(DEFAULT, '18+');
+
+
+/*
+ Очень часто пользователям интересно смотреть фильмы с определенными актерами и определенных режиссеров
+ 
+ В таблице actors и directors содержаться все актеры и режиссеры, принимавшие участие в создании фильмов из каталога медиа
+ 
+ Это дает возможность использования быстрого поиска медиа с определенными актерами и режиссерами
+ */
+
+CREATE TABLE actors (
+id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+name VARCHAR (45) NOT NULL,
+foto_name VARCHAR(245) DEFAULT NULL -- путь к файлу
+);
+
+INSERT INTO actors VALUES 
+	(DEFAULT, 'Морган Фриман', '/catalog/actors/file1.jpg'),
+	(DEFAULT, 'Том Хэнкс', '/catalog/actors/file2.jpg'),
+	(DEFAULT, 'Элайджа Вуд', '/catalog/actors/file3.jpg'),
+	(DEFAULT, 'Мэттью МакКонахи', '/catalog/actors/file4.jpg'),
+	(DEFAULT, 'Лиам Нисон', '/catalog/actors/file5.jpg'),
+	(DEFAULT, 'Джон Траволта', '/catalog/actors/file6.jpg'),
+	(DEFAULT, 'Леонардо ДиКаприо', '/catalog/actors/file7.jpg'),
+	(DEFAULT, 'Дженнифер Энистон', '/catalog/actors/file8.jpg'),
+	(DEFAULT, 'Зак Брафф', '/catalog/actors/file9.jpg'),
+	(DEFAULT, 'Джонни Галэки', '/catalog/actors/file10.jpg'),
+	(DEFAULT, 'Джиннифер Гудвин', '/catalog/actors/file11.jpg'),
+	(DEFAULT, 'Мэттью Бродерик', '/catalog/actors/file12.jpg'),
+	(DEFAULT, 'Бен Бертт', '/catalog/actors/file13.jpg'),
+	(DEFAULT, 'Анатолий Папанов', '/catalog/actors/file14.jpg'),
+	(DEFAULT, 'Алина Кукушкина', '/catalog/actors/file15.jpg'),
+	(DEFAULT, 'Вадим Бочанов', '/catalog/actors/file16.jpg');
+
+CREATE TABLE directors (
+id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+name VARCHAR (45) NOT NULL
+);
+
+INSERT INTO directors VALUES 
+	(DEFAULT, 'Фрэнк Дарабонт'),
+	(DEFAULT, 'Питер Джексон'),
+	(DEFAULT, 'Кристофер Нолан'),
+	(DEFAULT, 'Стивен Спилберг'),
+	(DEFAULT, 'Роберт Земекис'),
+	(DEFAULT, 'Квентин Тарантино'),
+	(DEFAULT, 'Гай Ричи'),
+	(DEFAULT, 'Гари Хэлворсон'),
+	(DEFAULT, 'Майкл Спиллер'),
+	(DEFAULT, 'Марк Сендроуски'),
+	(DEFAULT, 'Байрон Ховард'),
+	(DEFAULT, 'Роджер Аллерс'),
+	(DEFAULT, 'Эндрю Стэнтон'),
+	(DEFAULT, 'Вячеслав Котёночкин'),
+	(DEFAULT, 'Олег Кузовков'),
+	(DEFAULT, 'Денис Чернов');
+
+
+
+/*
+ В таблице media хранится вся необходимая информация
+ */
+
+CREATE TABLE media (
+	id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, -- номер в таблице
+	media_type_id INT UNSIGNED NOT NULL, -- тип медиа (фильм, сериал, мультфильм)
+	file_name VARCHAR (45) NOT NULL, 
+	description TEXT NOT NULL, -- описание
+	genre_id INT UNSIGNED NOT NULL, -- жанр
+	year_of_release VARCHAR (45) NOT NULL, -- год выпуска
+	main_role_id BIGINT UNSIGNED NOT NULL, -- актер в главной роли
+	director_id BIGINT UNSIGNED NOT NULL, -- режиссер
+	age_limit_id INT UNSIGNED NOT NULL, -- возрастное ограничение
+	media_availability INT UNSIGNED NOT NULL, -- доступность по подписке, ставлю 0 в том случае, если фильм доступен только за деньги	
+	CONSTRAINT fk_media_media_types FOREIGN KEY (media_type_id) REFERENCES media_types (id),
+	CONSTRAINT fk_media_genre_types FOREIGN KEY (genre_id) REFERENCES genre_types (id),
+	CONSTRAINT fk_media_age_limit FOREIGN KEY (age_limit_id) REFERENCES age_limit (id),
+	CONSTRAINT fk_media_actors FOREIGN KEY (main_role_id) REFERENCES actors (id),
+	CONSTRAINT fk_media_directors FOREIGN KEY (director_id) REFERENCES directors (id)
+);
+
+INSERT INTO media VALUES 
+	(DEFAULT, 1, 'Побег из Шоушенка', 'Выдающаяся драма о силе таланта, важности дружбы', 3, '1994', 1, 1, 4, 0), 
+	(DEFAULT, 1, 'Зеленая миля', 'Мистическая драма по роману Стивена Кинга', 3, '1999', 2, 1, 4, 2),
+	(DEFAULT, 1, 'Властелин колец: Возвращение короля', 'Эффектный финал саги, собравший 11 «Оскаров»', 6, '2003', 3, 2, 3, 2),
+	(DEFAULT, 1, 'Интерстеллар', 'Фантастический эпос про космические полеты и парадоксы времени.', 9, '2014', 4, 3, 3, 1),
+	(DEFAULT, 1, 'Список Шиндлера', 'Драма о холокосте и великом человеческом поступке', 3, '1993', 5, 4, 4, 1),
+	(DEFAULT, 1, 'Форрест Гамп', 'Том Хэнкс исполняет американскую мечту', 2, '1994', 2, 5, 3, 1),
+	(DEFAULT, 1, 'Криминальное чтиво', 'Фильм Квентина Тарантино, получивший «Золотую пальмовую ветвь» Каннского фестиваля, «Оскар»', 5, '1994', 6, 6, 5, 1),
+	(DEFAULT, 1, 'Джентльмены', 'Острая и живая криминальная комедия с блестящим актерским составом', 8, '2019', 4, 7, 5, 0),
+	(DEFAULT, 1, 'Контакт', 'Монументальный, психологичный сай-фай, одобренный НАСА', 10, '1997', 4, 5, 4, 1),
+	(DEFAULT, 1, 'Начало', 'Шпионаж фантастического уровня', 9, '2010', 7, 3, 4, 0),
+	(DEFAULT, 1, 'Изгой', 'Том Хэнкс выживает один на необитаемом острове', 6, '2000', 2, 5, 4, 1),
+	(DEFAULT, 2, 'Друзья', 'Великий комедийный сериал', 2, '1994', 8, 8, 4, 0),
+	(DEFAULT, 2, 'Клиника', 'Сверхпопулярный сериал о медицинских работниках', 2, '2010', 9, 9, 4, 1),
+	(DEFAULT, 2, 'Теория большого взрыва', 'Физики превращаются в лириков', 2, '2007', 10, 10, 4, 2),
+	(DEFAULT, 3, 'Зверополис', 'Отважная крольчиха Джуди делает полицейскую карьеру', 10, '2016', 11, 11, 2, 1),
+	(DEFAULT, 3, 'Король Лев', 'Львенок Симба бросает вызов дяде-убийце', 6, '1994', 12, 12, 1, 0),
+	(DEFAULT, 3, 'ВАЛЛ·И', 'Экологический шедевр Pixar', 9, '2008', 13, 13, 1, 1),
+	(DEFAULT, 4, 'Ну, погоди!', 'Самый веселый и популярный в СССР мультсериал', 2, '1969', 14, 14, 1, 1),
+	(DEFAULT, 4, 'Маша и Медведь', 'История дружбы озорной девчонки и совсем не страшного лесного жителя', 2, '2009', 15, 15, 1, 1),
+	(DEFAULT, 4, 'Смешарики', 'Смешные и умные истории для всей семьи', 2, '2003', 16, 16, 1, 1);
+	
+	
+
+/*
+ Для возможности рекомендации к просмотру различного контента можно хранить id фильмов, просмотренных каждым пльзователем
+ В этом случае пользователь посмотревший определенный фильм будет знать, что еще интересно пользователям,  посмотревшим тот же самый фильм.
+
+ Записи эти точно считать не нужно, т.к. это бесполезно и поэтому PRIMARY KEY делаю в связке с парой пользователь и медиа
+ */
+
+CREATE TABLE users_library (
+	users_id BIGINT UNSIGNED NOT NULL,
+	media_id BIGINT UNSIGNED NOT NULL,
+	viewed_at DATE NOT NULL,
+	PRIMARY KEY(users_id, media_id),
+	CONSTRAINT fk_users_library_users FOREIGN KEY (users_id) REFERENCES users (id),
+	CONSTRAINT fk_users_media FOREIGN KEY (media_id) REFERENCES media (id)
+);
+
+INSERT INTO users_library VALUES 
+	(1, 1, '2021-04-29'), (1, 5, '2021-04-20'), (1, 9, '2020-04-29'), (1, 13, '2021-01-29'), (1, 15, '2021-02-20'),
+	(2, 3, '2021-04-29'),
+	(3, 1, '2021-04-29'), (3, 5, '2021-04-20'), (3, 9, '2020-04-29'), (3, 13, '2021-01-29'), (3, 15, '2021-02-20'),
+	(4, 19, '2021-03-15'),
+	(5, 16, '2020-07-29'), (5, 19, '2021-09-17'),
+	(6, 19, '2020-10-15'),
+	(7, 11, '2020-07-29'), (7, 16, '2020-12-17'),
+	(8, 3, '2020-07-29'), (8, 4, '2020-09-17'), (8, 6, '2020-07-29'), (8, 19, '2020-06-15'),
+	(9, 3, '2020-08-29'), (9, 4, '2020-09-12'), (9, 11, '2020-07-29'), (9, 16, '2020-06-01'),
+	(10, 1, '2020-05-09'), (10, 7, '2020-12-06'), (10, 19, '2020-09-29'), (10, 13, '2020-12-15'), (10, 15, '2020-06-15'),
+	(11, 8, '2020-10-29'), (11, 13, '2020-09-12'), (11, 16, '2020-11-28'), (11, 20, '2020-12-01'),
+	(12, 11, '2020-12-29'), (12, 14, '2020-05-12'), (12, 17, '2020-07-29'),
+	(13, 3, '2020-12-29'), (13, 12, '2020-11-12'),
+	(14, 14, '2020-04-26'), (14, 17, '2020-11-10'),
+	(15, 1, '2019-12-20'), (15, 2, '2020-05-10'), (15, 7, '2020-03-17'), (15, 10, '2019-11-04'), (15, 14, '2020-09-29'), (15, 17, '2020-10-04'),
+	(16, 1, '2019-12-20'), (16, 2, '2020-05-10'), (16, 7, '2020-03-17'), (16, 12, '2019-11-04'),
+	(17, 2, '2020-07-20'), (17, 6, '2020-08-10'), (17, 9, '2020-11-14'), (17, 17, '2020-02-22'),
+	(18, 2, '2020-11-06'), (18, 8, '2020-07-17'), (18, 11, '2020-12-14'),
+	(19, 4, '2019-11-15'), (19, 6, '2020-03-19'), (19, 8, '2020-03-22'), (19, 10, '2019-11-26'), (19, 15, '2020-10-21'), (19, 18, '2020-10-03'), (20, 17, '2020-10-18'),
+	(20, 4, '2020-04-26'), (20, 7, '2020-11-10'),
+	(21, 12, '2019-06-26'), (21, 18, '2020-06-10'),(21, 20, '2020-12-26'),
+	(22, 20, '2020-10-26'),
+	(23, 10, '2019-12-31'),
+	(24, 5, '2020-07-20'), (24, 10, '2020-08-10'), (24, 12, '2020-11-14'), (24, 18, '2020-02-22'),
+	(25, 5, '2020-05-09'), (25, 6, '2020-12-06'), (25, 8, '2020-09-29'), (25, 12, '2020-12-15'), (25, 18, '2020-06-15');
+	
+
+/*
+ После просмотра пользователь может поставить оценку от 1 до 10, а может и не ставить
+ В таблице users_grades находятся оценки фильмам от пользователей
+ */
+
+CREATE TABLE users_grade (
+	media_id BIGINT UNSIGNED NOT NULL,
+	user_id BIGINT UNSIGNED NOT NULL,
+	grade_number INT UNSIGNED DEFAULT NULL, -- от 0 до 10. оценка не обязательна
+	PRIMARY KEY(media_id, user_id),
+	CONSTRAINT fk_users_grade_media FOREIGN KEY (media_id) REFERENCES media (id),
+	CONSTRAINT fk_users_grade_users FOREIGN KEY (user_id) REFERENCES users (id)
+);
+
+INSERT INTO users_grade VALUES 
+	(1, 1, 7), (1, 3, 8), (1, 10, 9), (1, 15, 6),
+	(2, 16, 5), (2, 17, 10), (2, 18, 7), (2, 15, 6),
+	(3, 2, 3), (3, 8, 9), (3, 9, 6), (3, 13, 7),
+	(4, 8, 6), (4, 9, 8), (4, 19, 5), (4, 20, 6),
+	(5, 24, 5), (5, 25, 6), (5, 1, 7), (5, 3, 5),
+	(6, 8, 6), (6, 25, 7), (6, 19, 5), (6, 17, 6),
+	(7, 10, 8), (7, 15, 7), (7, 16, 9), (7, 20, 6),
+	(8, 19, 10), (8, 18, 7), (8, 11, 8), (8, 25, 9),
+	(9, 1, 5), (9, 3, 6), (9, 17, 4), (9, 10, 8),
+	(10, 15, 8), (10, 24, 9), (10, 23, 6), (10, 19, 7),
+	(11, 7, 6), (11, 12, 7), (11, 18, 5), (11, 9, 8),
+	(12, 13, 8), (12, 21, 7), (12, 25, 8), (12, 24, 9),
+	(13, 1, 6), (13, 3, 7), (13, 10, 6), (13, 11, 7),
+	(14, 12, 8), (14, 14, 8), (14, 15, 9), (14, 16, 9),
+	(15, 1, 7), (15, 3, 6), (15, 10, 8), (15, 19, 6),
+	(16, 5, 7), (16, 7, 8), (16, 9, 9), (16, 11, 8),
+	(17, 12, 6), (17, 15, 7), (17, 17, 8), (17, 14, 7),
+	(18, 19, 8), (18, 21, 7), (18, 24, 6), (18, 25, 7),
+	(19, 4, 7), (19, 6, 8), (19, 8, 6), (19, 5, 5),
+	(20, 11, 9), (20, 16, 8), (20, 19, 10), (20, 21, 8);
+
+
+/*
+Таблица с платными медиафайлами и их ценами содержит все, что можно только купить.
+Отдельная выборка платного медиа дает возможность рекомендаций для покупок и возможность хранить все покупки пользователей, т.к. при 
+сбое на устройстве пользователя все данные о покупках могут потеряться 
+ */
+
+CREATE TABLE media_shop (
+	id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, -- уникальный номер медиа в магазине для отслеживания покупок
+	media_id BIGINT UNSIGNED NOT NULL,
+	price FLOAT UNSIGNED NOT NULL, -- цена медиа
+	CONSTRAINT fk_media_shop_media FOREIGN KEY (media_id) REFERENCES media (id)
+);
+
+INSERT INTO media_shop VALUES 
+	(DEFAULT, 1, 300),
+	(DEFAULT, 8, 250),
+	(DEFAULT, 10, 150),
+	(DEFAULT, 12, 230),
+	(DEFAULT, 16, 199);
+
+
+/*
+ В таблице users_purchase находятся покупки всех пользователей
+ */
+
+CREATE TABLE users_purchase (
+	purchase_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	catalog_id BIGINT UNSIGNED NOT NULL, -- номер медиа из таблицы media_shop
+	user_id BIGINT UNSIGNED NOT NULL,
+	bought_at DATE NOT NULL,
+	CONSTRAINT fk_users_purchase_media_shop FOREIGN KEY (catalog_id) REFERENCES media_shop (id)
+);
+
+INSERT INTO users_purchase VALUES 
+	(DEFAULT, 1, 1, '2020-06-20'), (DEFAULT, 1, 3, '2020-07-29'), (DEFAULT, 1, 10, '2020-07-15'), (DEFAULT, 1, 15, '2019-07-29'),
+	(DEFAULT, 2, 11, '2020-07-24'), (DEFAULT, 2, 18, '2020-11-19'), (DEFAULT, 2, 19, '2020-10-06'), (DEFAULT, 2, 25, '2020-01-29'),
+	(DEFAULT, 3, 15, '2019-06-20'), (DEFAULT, 3, 19, '2020-09-20'), (DEFAULT, 3, 23, '2020-11-18'), (DEFAULT, 3, 24, '2019-02-11'),
+	(DEFAULT, 4, 13, '2020-01-22'), (DEFAULT, 4, 21, '2020-07-23'), (DEFAULT, 4, 24, '2020-07-26'), (DEFAULT, 4, 25, '2019-09-29'),
+	(DEFAULT, 5, 5, '2019-12-20'), (DEFAULT, 5, 7, '2020-01-15'), (DEFAULT, 5, 9, '2020-09-23'), (DEFAULT, 5, 11, '2020-04-18');
+
+
+
+-- Рейтинг фильмов с названиями, используя оценки пользователей
+
+SELECT m.file_name, avg(ug.grade_number) AS average_rating
+FROM media m
+JOIN users_grade ug ON (m.id = ug.media_id)
+GROUP BY m.file_name 
+ORDER BY average_rating DESC;
+
+-- Выбрать пользователя, который посмотрел больше всего фильмов
+-- Обычно это не один пользователь, поэтому оставляю 5 максимальных строк
+
+SELECT CONCAT(u.first_name, ' ', u.last_name) AS viewer, count(ul.media_id) AS total
+FROM users u
+JOIN users_library ul ON ul.users_id = u.id
+GROUP BY viewer
+ORDER BY total DESC
+LIMIT 5;
+
+-- Выборка всех пользователей купивших фильмы  и названия этих фмльмов.
+
+SELECT CONCAT(u.first_name, ' ', u.last_name) AS buyer, m.file_name AS purchase
+FROM users u
+JOIN users_purchase up ON up.user_id = u.id
+JOIN media m ON up.catalog_id = m.id 
+ORDER BY buyer;
+
+-- C помощью производной таблицы можно создать зарос с выбором приключенческих фильмов
+
+SELECT * FROM (SELECT file_name FROM media WHERE genre_id = (SELECT id FROM genre_types WHERE name = 'приключения')) AS adventure;
+
+/*
+ * Процедура для рекомендации к просмотру определенных медиа.
+ * Суть заключается в том, что если пользователь 1 посмотрел какие-то фильмы, а пользователь 2 нет, то пользователю 2 будут рекомендоваться все
+ * фильмы, которые смотрел пользователь 1 и не смотрел пользователь 2
+ */
+
+
+DROP PROCEDURE IF EXISTS sp_media_recomendations;
+
+DELIMITER //
+
+CREATE PROCEDURE sp_media_recomendations(IN for_user_id BIGINT UNSIGNED)
+BEGIN
+	SELECT ul1.media_id, ul3.media_id 
+	FROM users_library ul1
+	JOIN users_library ul2 ON ul1.media_id = ul2.media_id 
+	JOIN users_library ul3 ON ul2.users_id = ul3.users_id 
+	WHERE ul1.users_id = for_user_id AND ul1.media_id != ul3.media_id 
+GROUP BY ul3.media_id;
+
+END //
+
+DELIMITER ;
+
+CALL sp_media_recomendations(1);
+
+-- Представление с рейтингом комедий
+
+CREATE OR REPLACE VIEW view_film_rate
+AS 
+SELECT m.file_name, avg(ug.grade_number) AS average_rait
+FROM media m
+JOIN genre_types gt ON m.genre_id = gt.id
+JOIN users_grade ug ON ug.media_id = m.id 
+WHERE gt.name = 'комедия'
+GROUP BY m.file_name
+ORDER BY average_rait DESC;
+
+-- Из представления можно выбрать самую топовую комедию например
+
+SELECT * FROM view_film_rate LIMIT 1;
+
+-- Представление, показывающее превилегированных пользователей с подпиской "А-МЕДИА" и какие фильмы они могут смотреть дополнительно
+
+CREATE OR REPLACE VIEW media_access
+AS
+SELECT concat(u.first_name, ' ', u.last_name) AS FIO, m.file_name 
+FROM users u 
+JOIN media m ON u.subscribe_id = m.media_availability
+WHERE m.media_availability = 2
+ORDER BY FIO;
+
+-- Тригер, вставляющий медиа в магазин покупок после того, как ему присвоится значение 0 в списке медиа
+-- Т.к. это новинка, то устанавливается максимальная цена 300 р.
+
+DROP TRIGGER IF EXISTS add_media_in_shop;
+
+DELIMITER //
+
+CREATE TRIGGER add_media_in_shop AFTER INSERT ON media
+FOR EACH ROW
+BEGIN 
+	IF NEW.media_availability = 0 THEN 
+		INSERT INTO media_shop (media_id , price)
+		VALUES (NEW.id, 300);
+	END IF;
+END //
+
+DELIMITER ;
